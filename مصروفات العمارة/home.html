@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة جديدة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            min-height: 100vh;
+            color: #2d3748;
+            overflow-x: hidden;
+        }
+        .sidebar {
+            width: 70px;
+            height: 100vh;
+            background: rgba(45, 55, 72, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            transition: all 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .sidebar:hover {
+            width: 200px;
+        }
+        .sidebar:hover .icon-button span {
+            display: inline;
+            opacity: 1;
+        }
+        .icon-button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+        .icon-button::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: #4299e1;
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+        .icon-button:hover::before {
+            transform: scaleY(1);
+        }
+        .icon-button i {
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #4299e1 0%, #2b6cb0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .icon-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .icon-button:hover i {
+            transform: scale(1.2) rotate(5deg);
+        }
+        .icon-button span {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-weight: 600;
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sidebar:hover .icon-button {
+            justify-content: flex-start;
+            padding-left: 25px;
+        }
+        .bottom-links {
+            margin-top: auto;
+            width: 100%;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .new-month-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #38A169 0%, #2F855A 100%);
+            color: white;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .new-month-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .new-month-btn i {
+            font-size: 1.2rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .content {
+            margin-left: 70px;
+            padding: 0;
+            width: calc(100% - 70px);
+            min-height: 100vh;
+            background: rgba(244, 244, 244, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        #contentFrame {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            display: block;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            animation: slideIn 0.3s ease;
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translate(-50%, -60%); opacity: 0; }
+            to { transform: translate(-50%, -50%); opacity: 1; }
+        }
+        .whatsapp-number {
+            color: #25D366;
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .whatsapp-number i {
+            font-size: 1.5rem;
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #4299e1;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #4299e1 0%, #2b6cb0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .social-link:hover {
+            transform: translateX(-5px);
+        }
+        .social-link i {
+            font-size: 1.2rem;
+            animation: spin 3s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .modal-title {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        .success-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #38A169 0%, #2F855A 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transform: translateY(-100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .success-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .success-notification i {
+            font-size: 1.2rem;
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-notification" id="successNotification">
+        <i class="fas fa-check-circle"></i>
+        <span>تم إنشاء شهر جديد بنجاح</span>
+    </div>
+    
+    <button class="new-month-btn" onclick="createNewMonth()">
+        <i class="fas fa-plus"></i>
+        <span>إنشاء شهر جديد</span>
+    </button>
+    
+    <div class="sidebar">
+        <button class="icon-button" onclick="togglePage('dashboard.html', this)">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>لوحة التحكم</span>
+        </button>
+        <button class="icon-button" onclick="togglePage('balance.html', this)">
+            <i class="fas fa-wallet"></i>
+            <span>رصيد</span>
+        </button>
+        <button class="icon-button" onclick="togglePage('revune.html', this)">
+            <i class="fas fa-chart-line"></i>
+            <span>إيرادات</span>
+        </button>
+        <button class="icon-button" onclick="togglePage('expenses.html', this)">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>مصروفات</span>
+        </button>
+        <button class="icon-button" onclick="togglePage('note.html', this)">
+            <i class="fas fa-sticky-note"></i>
+            <span>ملاحظات</span>
+        </button>
+        
+        <div class="bottom-links">
+            <button class="icon-button" onclick="toggleModal('supportModal')">
+                <i class="fas fa-headset"></i>
+                <span>دعم فني</span>
+            </button>
+            <button class="icon-button" onclick="toggleModal('aboutModal')">
+                <i class="fas fa-info-circle"></i>
+                <span>حول التطبيق</span>
+            </button>
+            <button class="icon-button" onclick="window.location.href='index.html'">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>تسجيل الخروج</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="content">
+        <iframe id="contentFrame" src="" class="w-full h-full border-none"></iframe>
+    </div>
+    
+    <div id="supportModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">الدعم الفني</h2>
+            <div class="whatsapp-number">
+                <i class="fab fa-whatsapp"></i>
+                <span>رقم الواتس: 01551543989</span>
+            </div>
+            <p class="text-gray-600">متاح من الساعة 9 صباحاً حتى 11 مساءً</p>
+        </div>
+    </div>
+    
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">حول التطبيق</h2>
+            <p class="mb-4">تم التطوير بواسطة خالد أحمد</p>
+            <a href="https://www.facebook.com/profile.php?id=100093411341607" target="_blank" class="social-link">
+                <i class="fab fa-facebook"></i>
+                <span>حساب الفيسبوك</span>
+            </a>
+        </div>
+    </div>
+    
+    <script>
+        let currentPage = "";
+        
+        // Load dashboard on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            togglePage('dashboard.html');
+        });
+
+        function togglePage(page, button) {
+            let frame = document.getElementById('contentFrame');
+            if (currentPage === page) {
+                frame.src = "";
+                currentPage = "";
+            } else {
+                frame.src = page;
+                currentPage = page;
+            }
+        }
+
+        function toggleModal(modalId) {
+            let modal = document.getElementById(modalId);
+            modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+
+        function createNewMonth() {
+            // Get the expenses data from localStorage
+            let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+            
+            // Reset all amounts to zero
+            expenses.forEach(expense => {
+                expense.expectedAmount = "0";
+                expense.paidAmount = "0";
+            });
+            
+            // Save the updated data back to localStorage
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+
+            // Get the floors data from localStorage
+            let floors = JSON.parse(localStorage.getItem('floors')) || [];
+            
+            // Reset all paid amounts to zero
+            floors.forEach(floor => {
+                floor.paidAmount = "0";
+            });
+            
+            // Save the updated data back to localStorage
+            localStorage.setItem('floors', JSON.stringify(floors));
+            
+            // If expenses, revenues, or balance page is currently open, reload it
+            if (currentPage === 'expenses.html' || currentPage === 'revune.html' || currentPage === 'balance.html') {
+                let frame = document.getElementById('contentFrame');
+                frame.src = currentPage;
+            }
+            
+            // Show success notification
+            const notification = document.getElementById('successNotification');
+            notification.classList.add('show');
+            
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

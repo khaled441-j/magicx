@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الرصيد</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+        }
+        .summary-card {
+            background: linear-gradient(135deg, #4299e1 0%, #2b6cb0 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .summary-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .summary-card p {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .success-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #38A169 0%, #2F855A 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transform: translateY(-100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .success-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .delete-confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .delete-confirm-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4">
+    <div class="max-w-7xl mx-auto">
+        <!-- Title -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-4">الرصيد</h1>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-3 gap-6 mb-8">
+            <div class="summary-card">
+                <h3>إجمالي الإيرادات</h3>
+                <p id="totalRevenues">0 جنيه</p>
+            </div>
+            <div class="summary-card">
+                <h3>إجمالي المصروفات</h3>
+                <p id="totalExpenses">0 جنيه</p>
+            </div>
+            <div class="summary-card">
+                <h3>الرصيد الحالي</h3>
+                <p id="currentBalance">0 جنيه</p>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex justify-between mb-8">
+            <button onclick="addBalance()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors">
+                <i class="fas fa-plus mr-2"></i>
+                أضف رصيد
+            </button>
+            <button onclick="toggleBalanceHistory()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                <i class="fas fa-history mr-2"></i>
+                عرض الرصيد
+            </button>
+        </div>
+
+        <!-- Balance History Table -->
+        <div id="balanceHistory" class="glass-card p-6 rounded-xl hidden">
+            <h2 class="text-2xl font-bold mb-6">سجل الرصيد</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-right py-4 px-6 text-lg font-bold">المبلغ</th>
+                            <th class="text-right py-4 px-6 text-lg font-bold">التاريخ</th>
+                            <th class="text-right py-4 px-6 text-lg font-bold">الوقت</th>
+                            <th class="text-right py-4 px-6 text-lg font-bold">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="balanceTableBody">
+                        <!-- Balance entries will be added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Notification -->
+    <div class="success-notification" id="successNotification">
+        <i class="fas fa-check-circle"></i>
+        <span>تم إضافة الرصيد بنجاح</span>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="delete-confirm-modal" id="deleteConfirmModal">
+        <div class="delete-confirm-content">
+            <h3 class="text-xl font-bold mb-4">هل أنت متأكد من حذف هذا الرصيد؟</h3>
+            <div class="flex justify-center gap-4">
+                <button onclick="confirmDelete()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                    نعم، حذف
+                </button>
+                <button onclick="cancelDelete()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let balanceHistory = JSON.parse(localStorage.getItem('balanceHistory')) || [];
+        let balanceToDelete = null;
+
+        // Load balance history on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBalanceHistory();
+            updateSummaryCards();
+            
+            // Listen for changes in revenues and expenses
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'floors' || event.key === 'expenses') {
+                    updateSummaryCards();
+                }
+            });
+        });
+
+        function addBalance() {
+            // Calculate current balance (revenues - expenses only)
+            const totalExpenses = parseFloat(localStorage.getItem('totalExpenses')) || 0;
+            const totalRevenues = parseFloat(localStorage.getItem('totalRevenues')) || 0;
+            const currentBalance = totalRevenues - totalExpenses;
+
+            // Save current balance
+            const now = new Date();
+            const newBalance = {
+                id: Date.now(),
+                amount: currentBalance.toFixed(2),
+                date: now.toLocaleDateString('ar-EG'),
+                time: now.toLocaleTimeString('ar-EG')
+            };
+
+            balanceHistory.unshift(newBalance);
+            localStorage.setItem('balanceHistory', JSON.stringify(balanceHistory));
+
+            // Show success notification
+            const notification = document.getElementById('successNotification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+
+            // Update display
+            loadBalanceHistory();
+            updateSummaryCards();
+        }
+
+        function closeAddBalanceModal() {
+            const modal = document.getElementById('addBalanceModal');
+            modal.style.display = 'none';
+        }
+
+        function saveBalance() {
+            const amountInput = document.getElementById('amountInput');
+            const amount = amountInput.value.trim();
+
+            if (amount) {
+                const now = new Date();
+                const newBalance = {
+                    id: Date.now(),
+                    amount: amount,
+                    date: now.toLocaleDateString('ar-EG'),
+                    time: now.toLocaleTimeString('ar-EG')
+                };
+
+                balanceHistory.unshift(newBalance);
+                localStorage.setItem('balanceHistory', JSON.stringify(balanceHistory));
+
+                // Close modal
+                closeAddBalanceModal();
+
+                // Show success notification
+                const notification = document.getElementById('successNotification');
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+
+                // Update display
+                loadBalanceHistory();
+                updateSummaryCards();
+            }
+        }
+
+        function loadBalanceHistory() {
+            const container = document.getElementById('balanceTableBody');
+            container.innerHTML = '';
+
+            balanceHistory.forEach(balance => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-lg font-bold text-gray-800">${balance.amount} جنيه</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-lg text-gray-600">${balance.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-lg text-gray-600">${balance.time}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <button onclick="showDeleteConfirm(${balance.id})" class="text-red-600 hover:text-red-900 text-xl">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function showDeleteConfirm(id) {
+            balanceToDelete = id;
+            const modal = document.getElementById('deleteConfirmModal');
+            modal.style.display = 'flex';
+            modal.style.animation = 'fadeIn 0.3s ease';
+        }
+
+        function confirmDelete() {
+            if (balanceToDelete) {
+                balanceHistory = balanceHistory.filter(balance => balance.id !== balanceToDelete);
+                localStorage.setItem('balanceHistory', JSON.stringify(balanceHistory));
+                loadBalanceHistory();
+                balanceToDelete = null;
+                updateSummaryCards();
+            }
+            const modal = document.getElementById('deleteConfirmModal');
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        function cancelDelete() {
+            balanceToDelete = null;
+            const modal = document.getElementById('deleteConfirmModal');
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        // Function to update totals from revenues and expenses
+        function updateTotals() {
+            // Get revenues data
+            const floors = JSON.parse(localStorage.getItem('floors')) || [];
+            const totalRevenues = floors.reduce((sum, floor) => sum + parseFloat(floor.paidAmount || 0), 0);
+            
+            // Get expenses data
+            const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+            const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.paidAmount || 0), 0);
+            
+            // Save totals to localStorage
+            localStorage.setItem('totalRevenues', totalRevenues);
+            localStorage.setItem('totalExpenses', totalExpenses);
+        }
+
+        function updateSummaryCards() {
+            // Update totals first
+            updateTotals();
+            
+            // Calculate totals
+            const totalExpenses = parseFloat(localStorage.getItem('totalExpenses')) || 0;
+            const totalRevenues = parseFloat(localStorage.getItem('totalRevenues')) || 0;
+            
+            // Current balance is just revenues minus expenses
+            const currentBalance = totalRevenues - totalExpenses;
+
+            // Update cards with currency
+            document.getElementById('totalExpenses').textContent = totalExpenses.toFixed(2) + ' جنيه';
+            document.getElementById('totalRevenues').textContent = totalRevenues.toFixed(2) + ' جنيه';
+            document.getElementById('currentBalance').textContent = currentBalance.toFixed(2) + ' جنيه';
+        }
+
+        function toggleBalanceHistory() {
+            const historyDiv = document.getElementById('balanceHistory');
+            historyDiv.classList.toggle('hidden');
+            if (!historyDiv.classList.contains('hidden')) {
+                loadBalanceHistory();
+            }
+        }
+
+        // Add fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add a function to refresh the page
+        function refreshPage() {
+            loadBalanceHistory();
+            updateSummaryCards();
+        }
+
+        // Call refreshPage periodically
+        setInterval(refreshPage, 1000);
+    </script>
+</body>
+</html>

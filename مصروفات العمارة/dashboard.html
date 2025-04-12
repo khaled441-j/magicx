@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+        }
+        .card {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        .card:hover::before {
+            transform: translateX(100%);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4">
+    <div class="max-w-7xl mx-auto">
+        <!-- العنوان الرئيسي -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-4 fade-in">لوحة التحكم</h1>
+            <p class="text-xl text-gray-200 fade-in">إدارة مصروفات وإيرادات العمارة</p>
+        </div>
+
+        <!-- البطاقات الرئيسية -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <!-- بطاقة المصروفات -->
+            <a href="expenses.html" class="card glass-card rounded-xl p-6 text-center fade-in">
+                <div class="text-4xl text-blue-500 mb-4">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">المصروفات</h3>
+                <p class="text-gray-600" id="totalExpenses">0 جنيه</p>
+            </a>
+
+            <!-- بطاقة الإيرادات -->
+            <a href="revenues.html" class="card glass-card rounded-xl p-6 text-center fade-in">
+                <div class="text-4xl text-green-500 mb-4">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">الإيرادات</h3>
+                <p class="text-gray-600" id="totalRevenues">0 جنيه</p>
+            </a>
+
+            <!-- بطاقة الرصيد -->
+            <a href="balance.html" class="card glass-card rounded-xl p-6 text-center fade-in">
+                <div class="text-4xl text-purple-500 mb-4">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">الرصيد</h3>
+                <p class="text-gray-600" id="currentBalance">0 جنيه</p>
+            </a>
+
+            <!-- بطاقة الملاحظات -->
+            <a href="notes.html" class="card glass-card rounded-xl p-6 text-center fade-in">
+                <div class="text-4xl text-yellow-500 mb-4">
+                    <i class="fas fa-sticky-note"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">الملاحظات</h3>
+                <p class="text-gray-600" id="notesCount">0 ملاحظة</p>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+        });
+
+        function updateDashboard() {
+            // Get revenues data from localStorage
+            const floors = JSON.parse(localStorage.getItem('floors')) || [];
+            const totalRevenues = floors.reduce((sum, floor) => sum + parseFloat(floor.paidAmount || 0), 0);
+
+            // Get expenses data
+            const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+            const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.paidAmount || 0), 0);
+
+            // Calculate current balance
+            const currentBalance = totalRevenues - totalExpenses;
+
+            // Update cards
+            document.getElementById('totalRevenues').textContent = totalRevenues.toFixed(2) + ' جنيه';
+            document.getElementById('totalExpenses').textContent = totalExpenses.toFixed(2) + ' جنيه';
+            document.getElementById('currentBalance').textContent = currentBalance.toFixed(2) + ' جنيه';
+        }
+
+        // Update dashboard when data changes in other pages
+        window.addEventListener('storage', function(event) {
+            if (event.key === 'floors' || event.key === 'expenses') {
+                updateDashboard();
+            }
+        });
+
+        // Update notes count
+        function updateNotesCount() {
+            const notes = JSON.parse(localStorage.getItem('notes')) || [];
+            document.getElementById('notesCount').textContent = notes.length;
+        }
+
+        // Listen for notes updates
+        document.addEventListener('notesUpdated', function(event) {
+            document.getElementById('notesCount').textContent = event.detail;
+        });
+
+        // Initial update
+        updateNotesCount();
+    </script>
+</body>
+</html>
